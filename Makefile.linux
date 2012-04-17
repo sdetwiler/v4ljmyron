@@ -1,0 +1,71 @@
+# Set location of JDK. This is the default location for Ubuntu 7.10.
+JAVAROOT = /usr/lib/jvm/java-6-sun
+
+# Where is Processing.
+PROCESSING = /home/steved/processing-0135
+
+# Use Processing's copy of Jikes to build java class to ensure binary
+# compatibility with Processing. 
+JAVAC = $(PROCESSING)/jikes
+
+CLASSPATH =  $(PROCESSING)/java/lib/rt.jar:$(PROCESSING)/lib:$(PROCESSING)/lib/pde.jar:$(PROCESSING)/lib/core.jar:$(PROCESSING)/lib/antlr.jar:$(PROCESSING)/lib/oro.jar:$(PROCESSING)/lib/registry.jar:$(PROCESSING)/libraries/JMyron/library/JMyron.jar
+
+JAVAH = $(JAVAROOT)/bin/javah
+
+GCCFLAGS = -g0 -O3
+
+#Define V4L to cause modified ezcam.cpp to build V4L version.
+GCCFLAGS += -D V4L
+
+
+
+
+all: Linux jniwrapper.o myron.o libJMyron.so JMyron.jar
+
+JMyron.jar: JMyron/JMyron.class
+	jar cfm JMyron.jar ../source/Manifest JMyron;
+
+jniwrapper.o: ../source/jniwrapper.cpp JMyron_JMyron.h
+	g++ -c ../source/jniwrapper.cpp -I$(JAVAROOT)/include -I$(JAVAROOT)/include/linux -I .
+
+
+JMyron/JMyron.class: ../source/JMyron.java
+	mkdir JMyron; cp ../source/JMyron.java JMyron/ ; $(JAVAC) -classpath $(CLASSPATH) JMyron/*.java
+
+JMyron_JMyron.h: JMyron/JMyron.class
+	$(JAVAH) JMyron.JMyron
+
+myron.o: ../source/myron.cpp 
+	g++ -c ../source/myron.cpp  -I .
+
+libJMyron.so: jniwrapper.o myron.o ezcam.o v4l2Camera.o
+	g++ -shared -o libJMyron.so myron.o jniwrapper.o ezcam.o v4l2Camera.o
+
+Linux: v4l2Camera.o ezcam.o test.o
+	g++ $(GCCFLAGS) -o test test.o ezcam.o v4l2Camera.o
+
+##v4lCamera.o: v4lCamera.cpp
+##	g++ $(GCCFLAGS) -c v4lCamera.cpp
+
+v4l2Camera.o: v4l2Camera.cpp
+	g++ $(GCCFLAGS) -c v4l2Camera.cpp
+
+ezcam.o: ezcam.cpp
+	g++ $(GCCFLAGS) -c ezcam.cpp
+
+test.o: test.cpp
+	g++ $(GCCFLAGS) -c test.cpp
+
+##cameraTest: v4l2Camera.o cameraTest.cpp
+##	g++ $(GCCFLAGS) cameraTest.cpp v4l2Camera.o -o cameraTest.elf
+
+run:
+	./test
+
+clean:
+	rm test  > /dev/null; \
+	rm *.o  > /dev/null; \
+	rm *.so  > /dev/null; \
+	rm *.jar > /dev/null;\
+	rm JMyron_JMyron.h > /dev/null; \
+	rm -fr JMyron

@@ -1,0 +1,137 @@
+V4L2 Camera interface for webcamxtra/JMyron
+
+Steve Detwiler
+
+http://piratestudios.com/steved
+steved@piratestudios.com
+
+
+
+
+Overview
+======================================================================
+
+This is a Video for Linux backend for webcamxtra and JMyron. I have
+built this to allow the use of JMyron in Processing under Linux.
+
+There are probably bugs and I'd like to hear about them if you find
+one.
+
+This requires a V4L2 driver and a camera that can output in YUYV
+format. The UVC driver that ships with the current release of Ubuntu
+(and likely other distros, too) supports many modern webcams.
+
+I've tested with a Logitech Quickcam Communicate Deluxe.
+
+This version is a rewrite of my earlier work. I have moved from V4L to
+V4L2 to gain access to many more cameras. This release only supports
+YUYV cameras. Previously I only supported RGB cameras. Eventually I'll
+merge all of this together to provide autodetection based on your
+camera.
+
+
+Use at your own risk.
+
+
+
+Prerequisites
+======================================================================
+
+A working camera with a working V4L2 driver on Linux that supports
+YUYV. A list of many cameras that are supported by the UVC driver can
+be found at:
+  http://linux-uvc.berlios.de/
+
+Processing-0135.
+
+Installed JMyron for Processing following thier install
+instructions. You can ignore copying their .DLL files.
+
+This has been tested with webcamxtra SVN version 29.
+
+
+Build Instructions
+======================================================================
+
+Get the current webcamextra source from SourceForge. For example, with
+SVN use:
+
+svn co https://webcamxtra.svn.sourceforge.net/svnroot/webcamxtra webcamxtra
+
+
+The V4L interface is made of of the following files:
+  v4l2Camera.h
+  v4l2Camera.cpp
+  
+  A modified version of ezcam.cpp
+
+  Makefile.linux
+
+Copy these four files into the webcamxtra/ezcam directory.
+
+Additionally copy the included copy of myron.cpp to the
+webcamxtra/source directory.
+
+Edit file Makefile.linux to specify the location of your copy of the
+Java SDK and Processing.
+
+
+From within the webcamxtra/ezcam directory, Run:
+
+make -f Makefile.linux
+
+This will build everything including JMyron. This isn't ideal because
+it replicates many of the build commands from webcamxtra/source but it
+works for the short term.
+
+If everything went well, you will have a JMyron.jar and a
+libJMyron.so. 
+
+
+
+Installation Instructions
+======================================================================
+
+Ensure you have JMyron already installed and that you have followed
+their instructions. You can ignore copying their .DLL files.
+
+From the files you compiled or obtained with this release:
+
+Copy the JMyron.jar to your processing/java/lib directory.
+Copy the libJMyron.so to your processing/java/lib/i386 directory.
+
+Run a JMyron example.
+
+
+Revision History
+======================================================================
+
+20071011
+Initial relese
+
+20080113
+Updated build instructions.
+
+Included a modified copy of myron.cpp that includes <string.h> for
+memcpy.
+
+Removed dependency on old mrj.jar file from 0125.
+
+20080203
+
+Large rewrite to move to V4L2. 
+
+Dropped support for V4L.
+
+Added support for YUYV cameras. Temporarily dropped RGB support.
+
+Updated Makefile.linux CLASSPATH. (Thanks hb).
+
+
+Known Issues
+======================================================================
+
+RGB cameras are currently not supported.
+
+I'm not happy with the current frame rate.
+
